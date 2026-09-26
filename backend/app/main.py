@@ -1,32 +1,54 @@
 from fastapi import FastAPI
-from app.core.config import settings
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.v1.auth import router as auth_router
+from app.api.v1.projects import router as project_router
+from app.api.v1.repositories import router as repository_router
+from app.api.v1.project_files import router as project_file_router
+
+# Import models so SQLAlchemy knows about them
+from app.models.project_file import ProjectFile
+from app.db import base
+from app.api.v1.users import router as user_router
+from app.api.v1.dashboard import router as dashboard_router
+from app.api.v1.deployment_environments import (
+    router as deployment_environment_router,
+)
+
+from app.api.v1.deployments import router as deployment_router
+from app.api.v1.github_webhooks import router as github_webhook_router
+
+
 
 app = FastAPI(
-    title="ReleaseForge API",
-    description="Enterprise Artifact & Release Management Platform",
-    version="0.1.0"
+    title="ReleaseForge",
+    version="0.1.0",
 )
 
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+app.include_router(auth_router)
+app.include_router(project_router)
+app.include_router(repository_router)
+app.include_router(project_file_router)
+app.include_router(user_router)
+app.include_router(dashboard_router)
+app.include_router(deployment_environment_router)
+app.include_router(deployment_router)
+app.include_router(github_webhook_router)
+
 @app.get("/")
-async def root():
+def root():
     return {
-        "project": "ReleaseForge",
-        "message": "Welcome to ReleaseForge 🚀",
-        "status": "running"
-    }
-
-
-@app.get("/health")
-async def health():
-    return {
-        "status": "healthy"
-    }
-
-@app.get("/")
-async def root():
-    return {
-        "project": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "status": "running"
+        "message": "ReleaseForge API Running"
     }
